@@ -1,0 +1,40 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AchieveO</title>
+    <link rel="stylesheet" href="{% static "css/index.css" %}">
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"></div>
+        <div>
+          <h1>{{name}}</h1>
+          <p>Press order desk</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Views">
+        <a href="/dashboard/"><Button>Work Space</Button></a>
+        <a href=""><button>Orders</button></a>
+        <a href=""><button>Products</button></a>
+        <a href=""><button>Customers</button></a>
+        <a href=""><Button>Profile</Button></a>
+        <form action="/auth/logout/" method="post">
+          {% csrf_token %}
+          <button id="btn" class="btn danger">Sign out</button>
+        </form>
+      </nav>
+      <div class="sidebar-footer">
+        Track quotation, design, proof, printing, finishing, delivery and payment from one screen.
+      </div>
+    </aside>
+    {% block content %}{% endblock content %}
+    <script src="{% static "js/index.js" %}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

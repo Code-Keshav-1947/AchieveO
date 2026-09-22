@@ -1,0 +1,105 @@
+{% extends "base.html" %} {% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2 id="viewTitle">Order Management</h2>
+      <p id="viewSubtitle">
+        Manage print jobs from customer request to final delivery.
+      </p>
+    </div>
+    <div class="actions">
+      <input
+        id="importFile"
+        type="file"
+        accept=".csv,.json,text/csv,application/json"
+        hidden
+      />
+      <button class="btn ghost" id="importBtn">Load data</button>
+      <button class="btn ghost" id="exportBtn">Export CSV</button>
+      <button class="btn" id="printBtn">Print report</button>
+      <button class="btn primary" id="newBtn">New order</button>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Business summary">
+    <div class="stat">
+      <span>Active jobs</span>
+      <strong id="activeJobs">{{pending_orders}}</strong>
+      <small>Not delivered yet</small>
+    </div>
+    <div class="stat">
+      <span>Total Orders</span>
+      <strong id="dueWeek">{{orders_count}}</strong>
+      <small>Orders Traked by AchieveO</small>
+    </div>
+    <div class="stat">
+      <span>Estimated profit</span>
+      <strong id="estimatedProfit">₹0</strong>
+      <small>All saved orders</small>
+    </div>
+    <div class="stat">
+      <span>Total billing amount</span>
+      <strong id="totalAmount">₹0</strong>
+      <small>Value of all saved orders</small>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="panel list-panel">
+      <div class="panel-head">
+        <h3 id="panelTitle">Orders</h3>
+        <span id="resultCount" class="pill delivered">0 records</span>
+      </div>
+      <div class="filters">
+        <div class="field">
+          <label for="search">Search</label>
+          <input
+            id="search"
+            type="search"
+            placeholder="Customer, job, order no."
+          />
+        </div>
+        <div class="field">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="payFilter">Payment</label>
+          <select id="payFilter">
+            <option value="">All payments</option>
+            <option>Due</option>
+            <option>Partial</option>
+            <option>Paid</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap" id="tableView">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Job</th>
+              <th>Status</th>
+              <th>Due</th>
+              <th>Profit</th>
+              <th>Balance</th>
+              <th>Total amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            {% for order in orders %}
+            <tr>
+              {{order.customer.name}}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="kanban" id="kanbanView"></div>
+    </div>
+  </section>
+</main>
+{% endblock content %}
