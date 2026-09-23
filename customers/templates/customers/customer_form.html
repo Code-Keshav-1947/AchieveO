@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{% if customer %}Edit Customer - {{ customer.name }}{% else %}New Customer{% endif %} - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>{% if customer %}Edit Customer: {{ customer.name }}{% else %}Add New Customer{% endif %}</h2>
+      <p>Manage contact info, billing addresses and customer profile.</p>
+    </div>
+    <div class="actions">
+      <a href="{% url 'customer_list' %}" class="btn ghost">&larr; Back to Customers</a>
+    </div>
+  </header>
+
+  <div class="panel" style="max-width: 650px; margin: 0 auto; width: 100%;">
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field full">
+          <label for="{{ form.name.id_for_label }}">Customer / Organization Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<small class="text-danger">{{ form.name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.mobile_no.id_for_label }}">Mobile / Phone Number</label>
+          {{ form.mobile_no }}
+          {% if form.mobile_no.errors %}<small class="text-danger">{{ form.mobile_no.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.email.id_for_label }}">Email Address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<small class="text-danger">{{ form.email.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.address.id_for_label }}">Address / City</label>
+          {{ form.address }}
+          {% if form.address.errors %}<small class="text-danger">{{ form.address.errors.0 }}</small>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);">
+        <a href="{% url 'customer_list' %}" class="btn ghost">Cancel</a>
+        <button type="submit" class="btn primary">{% if customer %}Save Changes{% else %}Create Customer{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{% if product %}Edit Product - {{ product.name }}{% else %}New Product{% endif %} - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>{% if product %}Edit Product: {{ product.name }}{% else %}Add New Product / Service{% endif %}</h2>
+      <p>Configure pricing, cost price per unit, and stock inventory.</p>
+    </div>
+    <div class="actions">
+      <a href="{% url 'product_list' %}" class="btn ghost">&larr; Back to Products</a>
+    </div>
+  </header>
+
+  <div class="panel" style="max-width: 650px; margin: 0 auto; width: 100%;">
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field full">
+          <label for="{{ form.name.id_for_label }}">Product / Service Title *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<small class="text-danger">{{ form.name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.price.id_for_label }}">Selling Price (₹ / unit) *</label>
+          {{ form.price }}
+          {% if form.price.errors %}<small class="text-danger">{{ form.price.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.cost_price.id_for_label }}">Cost Price (₹ / unit)</label>
+          {{ form.cost_price }}
+          {% if form.cost_price.errors %}<small class="text-danger">{{ form.cost_price.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.stocks.id_for_label }}">Current Inventory Stocks</label>
+          {{ form.stocks }}
+          {% if form.stocks.errors %}<small class="text-danger">{{ form.stocks.errors.0 }}</small>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);">
+        <a href="{% url 'product_list' %}" class="btn ghost">Cancel</a>
+        <button type="submit" class="btn primary">{% if product %}Save Changes{% else %}Create Product{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

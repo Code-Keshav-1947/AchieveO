@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Order #{{ order.id }} - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <div class="panel" style="max-width: 500px; margin: 60px auto; padding: 24px; text-align: center;">
+    <div style="font-size: 40px; margin-bottom: 12px;">&#9888;</div>
+    <h2 style="margin-bottom: 8px;">Delete Order #{{ order.id }}?</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">
+      Are you sure you want to permanently delete order "<strong>{{ order.name }}</strong>" for customer <strong>{{ order.customer.name }}</strong>? This action cannot be undone.
+    </p>
+
+    <form method="post" style="display: flex; justify-content: center; gap: 14px;">
+      {% csrf_token %}
+      <a href="{% url 'order_list' %}" class="btn ghost">Cancel</a>
+      <button type="submit" class="btn danger">Yes, Delete Order</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,361 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice #{{ order.id }} - {{ order.name }} | {{ owner.name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 30px 15px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .invoice-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+    .business-brand h1 {
+      font-size: 26px;
+      color: #0f766e;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .business-brand p {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .invoice-meta {
+      text-align: right;
+    }
+    .invoice-meta h2 {
+      font-size: 20px;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .invoice-meta .order-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f766e;
+      margin-top: 4px;
+    }
+    .invoice-meta p {
+      color: #64748b;
+      font-size: 13px;
+    }
+    .grid-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 30px;
+      background: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 8px;
+    }
+    .info-box h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .info-box strong {
+      font-size: 15px;
+      color: #0f172a;
+    }
+    .info-box p {
+      color: #475569;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    .table-container {
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th {
+      background: #0f766e;
+      color: #ffffff;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 16px;
+    }
+    th:first-child { border-top-left-radius: 6px; }
+    th:last-child { border-top-right-radius: 6px; text-align: right; }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+    }
+    td:last-child { text-align: right; font-weight: 600; }
+    .totals-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 30px;
+    }
+    .totals-box {
+      width: 300px;
+      display: grid;
+      gap: 8px;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      color: #64748b;
+    }
+    .totals-row.total-bold {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 10px;
+    }
+    .totals-row.balance-due {
+      font-size: 16px;
+      font-weight: 800;
+      color: #b91c1c;
+      background: #fef2f2;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .totals-row.paid-full {
+      font-size: 15px;
+      font-weight: 800;
+      color: #15803d;
+      background: #f0fdf4;
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+    .notes-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 30px;
+    }
+    .notes-box h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #b45309;
+      margin-bottom: 4px;
+    }
+    .notes-box p {
+      color: #78350f;
+      font-size: 13px;
+    }
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 50px;
+      padding-top: 20px;
+    }
+    .sig-line {
+      border-top: 1px dashed #94a3b8;
+      padding-top: 8px;
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+    }
+    .actions-bar {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-action {
+      background: #0f766e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .btn-back {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .pill.pending { background: #fef3c7; color: #92400e; }
+    .pill.confirmed { background: #e0f2fe; color: #0369a1; }
+    .pill.designing { background: #ede9fe; color: #6d28d9; }
+    .pill.printing { background: #dbeafe; color: #1d4ed8; }
+    .pill.ready { background: #dcfce7; color: #166534; }
+    .pill.delivered { background: #e5e7eb; color: #374151; }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .invoice-wrapper {
+        box-shadow: none;
+        padding: 0;
+      }
+      .actions-bar {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="actions-bar">
+    <a href="{% url 'dashboard' %}" class="btn-action btn-back">&larr; Back to Workspace</a>
+    <button type="button" class="btn-action" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+      Print Invoice / Job Card
+    </button>
+  </div>
+
+  <div class="invoice-wrapper">
+    <!-- Header -->
+    <header class="invoice-header">
+      <div class="business-brand">
+        <h1>{{ owner.name|default:"Printing Press" }}</h1>
+        <p>Email: {{ owner.email }}</p>
+        {% if owner.mobile_no %}<p>Phone: {{ owner.mobile_no }}</p>{% endif %}
+      </div>
+      <div class="invoice-meta">
+        <h2>JOB ESTIMATE / INVOICE</h2>
+        <div class="order-num">Order #{{ order.id }}</div>
+        <p>Date: {{ order.date_get|date:"d M Y" }}</p>
+        <p>Status: <span class="pill {{ order.status|lower }}">{{ order.get_status_display }}</span></p>
+      </div>
+    </header>
+
+    <!-- Info Grid -->
+    <section class="grid-info">
+      <div class="info-box">
+        <h3>Billed To (Customer)</h3>
+        <strong>{{ order.customer.name }}</strong>
+        {% if order.customer.mobile_no %}<p>Phone: {{ order.customer.mobile_no }}</p>{% endif %}
+        {% if order.customer.email %}<p>Email: {{ order.customer.email }}</p>{% endif %}
+        {% if order.customer.address %}<p>Address: {{ order.customer.address }}</p>{% endif %}
+      </div>
+      <div class="info-box">
+        <h3>Job Specifications</h3>
+        <strong>{{ order.name }}</strong>
+        <p>Product: {{ order.product.name }}</p>
+        {% if order.due_date %}
+          <p><strong>Delivery Date: {{ order.due_date|date:"d M Y" }}</strong></p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Description / Item</th>
+            <th>Rate (₹)</th>
+            <th style="text-align: center;">Quantity</th>
+            <th>Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>{{ order.name }}</strong>
+              <br><small style="color: #64748b;">Service/Product: {{ order.product.name }}</small>
+            </td>
+            <td>₹{{ order.product.price }}</td>
+            <td style="text-align: center;">{{ order.quantity }}</td>
+            <td>₹{{ order.total_amount }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Totals -->
+    <section class="totals-section">
+      <div class="totals-box">
+        <div class="totals-row">
+          <span>Subtotal</span>
+          <strong>₹{{ order.total_amount }}</strong>
+        </div>
+        <div class="totals-row total-bold">
+          <span>Total Order Value</span>
+          <span>₹{{ order.total_amount }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Advance Received</span>
+          <span>₹{{ order.advance }}</span>
+        </div>
+        {% if order.balance > 0 %}
+          <div class="totals-row balance-due">
+            <span>Balance Due</span>
+            <span>₹{{ order.balance }}</span>
+          </div>
+        {% else %}
+          <div class="totals-row paid-full">
+            <span>Payment Status</span>
+            <span>Fully Paid</span>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Notes if present -->
+    {% if order.notes %}
+    <section class="notes-box">
+      <h4>Production & Finishing Instructions:</h4>
+      <p>{{ order.notes|linebreaksbr }}</p>
+    </section>
+    {% endif %}
+
+    <!-- Signatures -->
+    <footer class="signature-grid">
+      <div class="sig-line">Customer Signature</div>
+      <div class="sig-line">Authorized Signatory ({{ owner.name }})</div>
+    </footer>
+  </div>
+</body>
+</html>

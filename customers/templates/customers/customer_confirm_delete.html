@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Customer - {{ customer.name }} - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <div class="panel" style="max-width: 500px; margin: 60px auto; padding: 24px; text-align: center;">
+    <div style="font-size: 40px; margin-bottom: 12px;">&#9888;</div>
+    <h2 style="margin-bottom: 8px;">Delete Customer "{{ customer.name }}"?</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">
+      Deleting this customer will also delete all associated orders and history. Are you sure you want to proceed?
+    </p>
+
+    <form method="post" style="display: flex; justify-content: center; gap: 14px;">
+      {% csrf_token %}
+      <a href="{% url 'customer_list' %}" class="btn ghost">Cancel</a>
+      <button type="submit" class="btn danger">Yes, Delete Customer</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

@@ -1,4 +1,11 @@
-.venv
-.vscode
+.venv/
+.vscode/
 db.sqlite3
+*.sqlite3
 migrations_script.py
+__pycache__/
+*.py[cod]
+*$py.class
+staticfiles/
+.env
+*.log

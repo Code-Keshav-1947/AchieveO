@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{% if order %}Edit Order #{{ order.id }}{% else %}New Order{% endif %} - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>{% if order %}Edit Order #{{ order.id }}{% else %}Create New Order{% endif %}</h2>
+      <p>Configure print specifications, billing details and delivery date.</p>
+    </div>
+    <div class="actions">
+      <a href="{% url 'order_list' %}" class="btn ghost">&larr; Back to Orders</a>
+    </div>
+  </header>
+
+  <div class="panel" style="max-width: 800px; margin: 0 auto; width: 100%;">
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field full">
+          <label for="{{ form.name.id_for_label }}">Job Title / Description *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<small class="text-danger">{{ form.name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.customer.id_for_label }}">Customer *</label>
+          {{ form.customer }}
+          {% if form.customer.errors %}<small class="text-danger">{{ form.customer.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.product.id_for_label }}">Product / Service *</label>
+          {{ form.product }}
+          {% if form.product.errors %}<small class="text-danger">{{ form.product.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.quantity.id_for_label }}">Quantity *</label>
+          {{ form.quantity }}
+          {% if form.quantity.errors %}<small class="text-danger">{{ form.quantity.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.advance.id_for_label }}">Advance Paid (₹)</label>
+          {{ form.advance }}
+          {% if form.advance.errors %}<small class="text-danger">{{ form.advance.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.status.id_for_label }}">Order Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}<small class="text-danger">{{ form.status.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.due_date.id_for_label }}">Target Due Date</label>
+          {{ form.due_date }}
+          {% if form.due_date.errors %}<small class="text-danger">{{ form.due_date.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.notes.id_for_label }}">Printing & Finishing Notes</label>
+          {{ form.notes }}
+          {% if form.notes.errors %}<small class="text-danger">{{ form.notes.errors.0 }}</small>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);">
+        <a href="{% url 'order_list' %}" class="btn ghost">Cancel</a>
+        <button type="submit" class="btn primary">{% if order %}Save Changes{% else %}Create Order{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

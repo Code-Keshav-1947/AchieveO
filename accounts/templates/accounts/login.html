@@ -4,40 +4,116 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AchieveO</title>
+    <title>Sign In - AchieveO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static "css/index.css" %}">
+    <style>
+      .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
+      .login-container {
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        padding: 36px 32px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      }
+      .login-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .login-brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, #0f766e, #0284c7);
+        display: grid;
+        place-items: center;
+        color: #ffffff;
+      }
+      .login-title h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .login-title p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .login-form {
+        display: grid;
+        gap: 16px;
+      }
+    </style>
   </head>
   <body>
-    <div class="login-overlay" id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-
-    <form class="login-card" id="loginForm" method="post" novalidate>
-        {% csrf_token %}
-      <div>
-        <h2 id="loginTitle">Admin sign in</h2>
-        <p>Sign in to manage orders, product costs, and profit.</p>
-      </div>
-      <div class="field">
-        <label for="{{ form.username.id_for_label }}">
-            Username
-        </label>
-        {{form.username}}
-      </div>
-        <div class="field">
-            <label for="{{ form.password.id_for_label }}">
-                Password
-            </label>
-            {{form.password}}
+    <div class="login-page">
+      <div class="login-container">
+        <div class="login-brand">
+          <div class="login-brand-mark">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
+              <path d="M18 18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14"/>
+              <polyline points="15 6 9 12 15 18"/>
+            </svg>
+          </div>
+          <div>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a;">AchieveO</h1>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">Press Order Desk</p>
+          </div>
         </div>
-        <p class="login-error" id="loginError" aria-live="polite">{{form.error}}</p>
-        <button class="btn primary" type="submit">Sign in</button>
-    </form>
-    <div class="toast" id="toast">
+
+        <div class="login-title" style="margin-bottom: 20px;">
+          <h2>Sign In to Your Workspace</h2>
+          <p>Access your orders, products, billing, and customer records.</p>
+        </div>
+
+        <form class="login-form" method="post" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+          </div>
+          <div class="field">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+          </div>
+
+          {% if form.errors %}
+            <p class="login-error" style="color: var(--danger); font-size: 13px; margin: 0;">
+              {% if form.non_field_errors %}
+                {{ form.non_field_errors.0 }}
+              {% else %}
+                Invalid username or password. Please try again.
+              {% endif %}
+            </p>
+          {% endif %}
+
+          <button class="btn primary" type="submit" style="width: 100%; min-height: 42px; margin-top: 8px;">
+            Sign In
+          </button>
+        </form>
+      </div>
     </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="{% static "js/index.js" %}"></script>
     {% if form.errors %}
-        <script>
-            showToast("Wrong! Username or Password is incorrect.")
-        </script>
+      <script>
+        showToast("Invalid username or password.", "error");
+      </script>
     {% endif %}
   </body>
 </html>

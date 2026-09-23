@@ -1,105 +1,555 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AchieveO - Workspace & Order Pipeline{% endblock %}
+
+{% block content %}
 <main class="main">
+  <!-- Topbar Header -->
   <header class="topbar">
     <div class="title">
       <h2 id="viewTitle">Order Management</h2>
       <p id="viewSubtitle">
-        Manage print jobs from customer request to final delivery.
+        Live print production pipeline from customer inquiry to delivery and payment.
       </p>
     </div>
     <div class="actions">
-      <input
-        id="importFile"
-        type="file"
-        accept=".csv,.json,text/csv,application/json"
-        hidden
-      />
-      <button class="btn ghost" id="importBtn">Load data</button>
-      <button class="btn ghost" id="exportBtn">Export CSV</button>
-      <button class="btn" id="printBtn">Print report</button>
-      <button class="btn primary" id="newBtn">New order</button>
+      <button type="button" class="btn ghost" id="openCustomerModalBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+        <span>Add Customer</span>
+      </button>
+
+      <button type="button" class="btn ghost" id="openProductModalBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+        <span>Add Product</span>
+      </button>
+
+      <a href="{% url 'order_export_csv' %}" class="btn ghost" title="Export all orders to CSV">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        <span>Export CSV</span>
+      </a>
+
+      <button type="button" class="btn ghost" id="printReportBtn" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        <span>Print Report</span>
+      </button>
+
+      <button type="button" class="btn primary" id="openOrderModalBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+        <span>New Order</span>
+      </button>
     </div>
   </header>
 
+  <!-- Summary KPI Cards -->
   <section class="stats" aria-label="Business summary">
     <div class="stat">
-      <span>Active jobs</span>
-      <strong id="activeJobs">{{pending_orders}}</strong>
-      <small>Not delivered yet</small>
+      <div class="stat-header">
+        <span>Active Jobs</span>
+        <span class="stat-icon warning">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+      </div>
+      <strong id="activeJobs">{{ pending_orders }}</strong>
+      <small>In production pipeline</small>
     </div>
+
     <div class="stat">
-      <span>Total Orders</span>
-      <strong id="dueWeek">{{orders_count}}</strong>
-      <small>Orders Traked by AchieveO</small>
+      <div class="stat-header">
+        <span>Total Orders</span>
+        <span class="stat-icon blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </span>
+      </div>
+      <strong id="totalOrdersCount">{{ orders_count }}</strong>
+      <small>All-time recorded orders</small>
     </div>
+
     <div class="stat">
-      <span>Estimated profit</span>
-      <strong id="estimatedProfit">₹0</strong>
-      <small>All saved orders</small>
+      <div class="stat-header">
+        <span>Estimated Profit</span>
+        <span class="stat-icon done">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </span>
+      </div>
+      <strong id="estimatedProfit" class="profit-positive">₹{{ estimated_profit|default:"0" }}</strong>
+      <small>Gross estimated margin</small>
     </div>
+
     <div class="stat">
-      <span>Total billing amount</span>
-      <strong id="totalAmount">₹0</strong>
-      <small>Value of all saved orders</small>
+      <div class="stat-header">
+        <span>Total Billing</span>
+        <span class="stat-icon press">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+        </span>
+      </div>
+      <strong id="totalAmount">₹{{ total_amount|default:"0" }}</strong>
+      <small>Recv: ₹{{ total_received }} &bull; Due: ₹{{ total_balance }}</small>
     </div>
   </section>
 
-  <section class="workspace">
-    <div class="panel list-panel">
+  <!-- Main Pipeline Workspace -->
+  <section class="workspace-full">
+    <div class="panel">
+      <!-- Panel Header & View Controls -->
       <div class="panel-head">
-        <h3 id="panelTitle">Orders</h3>
-        <span id="resultCount" class="pill delivered">0 records</span>
+        <div class="panel-head-left">
+          <h3 id="panelTitle">Production Orders</h3>
+          <span id="resultCount" class="pill delivered">{{ orders|length }} records</span>
+        </div>
+
+        <div class="view-switchers">
+          <button type="button" class="btn-toggle active" id="tableViewToggle" title="Table list view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+            <span>Table</span>
+          </button>
+          <button type="button" class="btn-toggle" id="kanbanViewToggle" title="Kanban board view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="6" height="18" x="3" y="3" rx="1"/><rect width="6" height="12" x="15" y="3" rx="1"/><rect width="6" height="8" x="9" y="3" rx="1"/></svg>
+            <span>Kanban Board</span>
+          </button>
+        </div>
       </div>
+
+      <!-- Filters Row -->
       <div class="filters">
         <div class="field">
-          <label for="search">Search</label>
-          <input
-            id="search"
-            type="search"
-            placeholder="Customer, job, order no."
-          />
+          <label for="orderSearchInput">Search Orders</label>
+          <div class="search-input-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <input
+              id="orderSearchInput"
+              type="search"
+              placeholder="Search customer, job name, mobile, product..."
+              autocomplete="off"
+            />
+          </div>
         </div>
+
         <div class="field">
-          <label for="statusFilter">Status</label>
-          <select id="statusFilter">
-            <option value="">All statuses</option>
+          <label for="orderStatusFilter">Status Filter</label>
+          <select id="orderStatusFilter">
+            <option value="">All Statuses</option>
+            {% for code, label in status_choices %}
+              <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
           </select>
         </div>
+
         <div class="field">
-          <label for="payFilter">Payment</label>
-          <select id="payFilter">
-            <option value="">All payments</option>
-            <option>Due</option>
-            <option>Partial</option>
-            <option>Paid</option>
+          <label for="orderPaymentFilter">Payment Filter</label>
+          <select id="orderPaymentFilter">
+            <option value="">All Payments</option>
+            <option value="paid">Paid</option>
+            <option value="partial">Partial</option>
+            <option value="due">Due</option>
           </select>
+        </div>
+
+        <div class="field filter-action-field">
+          <label>&nbsp;</label>
+          <button type="button" class="btn ghost btn-sm" id="resetFiltersBtn" title="Reset filters">
+            Reset
+          </button>
         </div>
       </div>
+
+      <!-- 1. Table View -->
       <div class="table-wrap" id="tableView">
-        <table>
+        <table id="ordersTable">
           <thead>
             <tr>
+              <th>Order ID</th>
               <th>Customer</th>
-              <th>Job</th>
+              <th>Job Description</th>
+              <th>Product & Qty</th>
               <th>Status</th>
-              <th>Due</th>
-              <th>Profit</th>
-              <th>Balance</th>
-              <th>Total amount</th>
-              <th>Actions</th>
+              <th>Payment</th>
+              <th>Total Amount</th>
+              <th style="text-align: right;">Actions</th>
             </tr>
           </thead>
           <tbody id="ordersBody">
             {% for order in orders %}
-            <tr>
-              {{order.customer.name}}
+            <tr class="order-row"
+                data-order-id="{{ order.id }}"
+                data-customer="{{ order.customer.name|lower }}"
+                data-mobile="{{ order.customer.mobile_no|default:'' }}"
+                data-job="{{ order.name|lower }}"
+                data-product="{{ order.product.name|lower }}"
+                data-status="{{ order.status|lower }}"
+                data-payment="{{ order.payment_status }}">
+              <td>
+                <span class="order-id-badge">#{{ order.id }}</span>
+                <div class="table-date">{{ order.date_get|date:"d M Y" }}</div>
+              </td>
+              <td>
+                <div class="customer-cell">
+                  <strong>{{ order.customer.name }}</strong>
+                  {% if order.customer.mobile_no %}
+                    <span class="subtext"><a href="tel:{{ order.customer.mobile_no }}">{{ order.customer.mobile_no }}</a></span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="job">
+                  <strong>{{ order.name }}</strong>
+                  {% if order.due_date %}
+                    <span class="due-text">Due: {{ order.due_date|date:"d M Y" }}</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="product-cell">
+                  <span>{{ order.product.name }}</span>
+                  <span class="badge-qty">&times; {{ order.quantity }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="status-cell">
+                  <span class="pill pill-{{ order.status|lower }}">
+                    {{ order.get_status_display }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="payment-cell">
+                  <span class="pill pill-{{ order.payment_status }}">
+                    {{ order.payment_status|title }}
+                  </span>
+                  <div class="payment-sub">
+                    {% if order.balance > 0 %}
+                      <small class="text-danger">Bal: ₹{{ order.balance }}</small>
+                    {% else %}
+                      <small class="text-success">Cleared</small>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="amount-cell">
+                  <strong>₹{{ order.total_amount }}</strong>
+                  {% if order.advance > 0 %}
+                    <small class="subtext">Adv: ₹{{ order.advance }}</small>
+                  {% endif %}
+                </div>
+              </td>
+              <td style="text-align: right;">
+                <div class="row-actions">
+                  <button type="button" class="icon-btn quick-status-btn" title="Quick change status"
+                          data-order-id="{{ order.id }}" data-current-status="{{ order.status|lower }}" data-job-name="{{ order.name }}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                  <a href="{% url 'order_invoice' order.id %}" target="_blank" class="icon-btn" title="Print Invoice / Job Card">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+                  </a>
+                  <a href="{% url 'order_edit' order.id %}" class="icon-btn" title="Edit order">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </a>
+                  <a href="{% url 'order_delete' order.id %}" class="icon-btn danger" title="Delete order">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr id="emptyRow">
+              <td colspan="8" class="empty-state">
+                <div class="empty-content">
+                  <div class="empty-icon">&#128221;</div>
+                  <h4>No orders recorded yet</h4>
+                  <p>Click "New Order" above to create your first print job.</p>
+                </div>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+        <div id="noResultsMsg" class="empty-state" style="display: none; padding: 40px;">
+          <p>No orders match the selected filters or search query.</p>
+        </div>
       </div>
-      <div class="kanban" id="kanbanView"></div>
+
+      <!-- 2. Kanban Board View -->
+      <div class="kanban" id="kanbanView">
+        {% for lane in kanban_lanes %}
+        <div class="lane" data-status="{{ lane.code }}">
+          <div class="lane-header">
+            <h4>{{ lane.label }}</h4>
+            <span class="lane-count" id="count-{{ lane.code }}">
+              {{ lane.orders|length }}
+            </span>
+          </div>
+          <div class="cards" id="cards-{{ lane.code }}" data-status="{{ lane.code }}">
+            {% for order in lane.orders %}
+            <div class="order-card" data-order-id="{{ order.id }}" draggable="true">
+              <div class="order-card-header">
+                <span class="order-id-badge">#{{ order.id }}</span>
+                <span class="pill pill-{{ order.payment_status }}">{{ order.payment_status|title }}</span>
+              </div>
+              <strong class="order-card-title">{{ order.name }}</strong>
+              <div class="order-card-customer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>{{ order.customer.name }}</span>
+              </div>
+              <div class="order-card-meta">
+                <span>{{ order.product.name }} &times; {{ order.quantity }}</span>
+                <strong>₹{{ order.total_amount }}</strong>
+              </div>
+              <div class="order-card-footer">
+                {% if order.balance > 0 %}
+                  <span class="text-danger"><small>Bal: ₹{{ order.balance }}</small></span>
+                {% else %}
+                  <span class="text-success"><small>Paid in full</small></span>
+                {% endif %}
+                <div class="order-card-actions">
+                  <a href="{% url 'order_invoice' order.id %}" target="_blank" class="card-action-btn" title="Invoice">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </a>
+                  <button type="button" class="card-action-btn quick-status-btn"
+                          data-order-id="{{ order.id }}" data-current-status="{{ order.status|lower }}" data-job-name="{{ order.name }}" title="Move Stage">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
   </section>
 </main>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. New Order Modal -->
+<div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal-card modal-lg">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <h3 id="orderModalTitle">Create New Print Order</h3>
+        <p>Fill in job specifications, customer, quantity, and billing.</p>
+      </div>
+      <button type="button" class="modal-close" data-close-modal>&times;</button>
+    </div>
+
+    <form id="orderForm" method="post" action="{% url 'order_create' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-grid">
+          <!-- Job Title -->
+          <div class="field full">
+            <label for="orderNameInput">Job Title / Description *</label>
+            <input type="text" id="orderNameInput" name="name" placeholder="e.g. 500 ID Cards with Lanyards" required />
+          </div>
+
+          <!-- Customer Select + Quick Add -->
+          <div class="field">
+            <div class="label-with-action">
+              <label for="orderCustomerSelect">Customer *</label>
+              <button type="button" class="link-btn" id="quickAddCustomerTrigger">+ Quick Add</button>
+            </div>
+            <select id="orderCustomerSelect" name="customer" required>
+              <option value="">-- Select Customer --</option>
+              {% for cust in customers %}
+                <option value="{{ cust.id }}">{{ cust.name }} {% if cust.mobile_no %}({{ cust.mobile_no }}){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Product Select + Quick Add -->
+          <div class="field">
+            <div class="label-with-action">
+              <label for="orderProductSelect">Product / Service *</label>
+              <button type="button" class="link-btn" id="quickAddProductTrigger">+ Quick Add</button>
+            </div>
+            <select id="orderProductSelect" name="product" required>
+              <option value="" data-price="0" data-cost="0">-- Select Product --</option>
+              {% for prod in products %}
+                <option value="{{ prod.id }}" data-price="{{ prod.price }}" data-cost="{{ prod.cost_price|default:0 }}">
+                  {{ prod.name }} (₹{{ prod.price }}/unit)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Quantity -->
+          <div class="field">
+            <label for="orderQuantityInput">Quantity *</label>
+            <input type="number" id="orderQuantityInput" name="quantity" min="1" value="1" required />
+          </div>
+
+          <!-- Advance Received -->
+          <div class="field">
+            <label for="orderAdvanceInput">Advance Payment Received (₹)</label>
+            <input type="number" id="orderAdvanceInput" name="advance" min="0" value="0" />
+          </div>
+
+          <!-- Initial Status -->
+          <div class="field">
+            <label for="orderStatusSelect">Pipeline Status</label>
+            <select id="orderStatusSelect" name="status">
+              {% for code, label in status_choices %}
+                <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Due Date -->
+          <div class="field">
+            <label for="orderDueDateInput">Target Delivery Date</label>
+            <input type="date" id="orderDueDateInput" name="due_date" />
+          </div>
+
+          <!-- Notes / Special Instructions -->
+          <div class="field full">
+            <label for="orderNotesInput">Printing / Finishing Instructions</label>
+            <textarea id="orderNotesInput" name="notes" rows="2" placeholder="e.g. 300 GSM Art paper, Matte lamination, Rounded corners..."></textarea>
+          </div>
+        </div>
+
+        <!-- Live Calculation Card -->
+        <div class="calc-summary">
+          <div class="calc-item">
+            <span>Unit Rate</span>
+            <strong id="calcUnitPrice">₹0</strong>
+          </div>
+          <div class="calc-item">
+            <span>Total Value</span>
+            <strong id="calcTotalValue">₹0</strong>
+          </div>
+          <div class="calc-item">
+            <span>Advance Paid</span>
+            <strong id="calcAdvance">₹0</strong>
+          </div>
+          <div class="calc-item highlight">
+            <span>Balance Due</span>
+            <strong id="calcBalance">₹0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn primary" id="saveOrderBtn">Create Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Quick Add Customer Modal -->
+<div class="modal-overlay" id="customerModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <h3>Add New Customer</h3>
+        <p>Save customer contact details for repeat orders.</p>
+      </div>
+      <button type="button" class="modal-close" data-close-modal>&times;</button>
+    </div>
+
+    <form id="quickCustomerForm" method="post" action="{% url 'customer_create' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="custNameInput">Customer / Company Name *</label>
+            <input type="text" id="custNameInput" name="name" placeholder="e.g. Acme Studio / Rahul Sharma" required />
+          </div>
+          <div class="field full">
+            <label for="custPhoneInput">Mobile Number</label>
+            <input type="tel" id="custPhoneInput" name="mobile_no" placeholder="e.g. 9876543210" />
+          </div>
+          <div class="field full">
+            <label for="custEmailInput">Email Address</label>
+            <input type="email" id="custEmailInput" name="email" placeholder="e.g. contact@example.com" />
+          </div>
+          <div class="field full">
+            <label for="custAddressInput">Address / City</label>
+            <input type="text" id="custAddressInput" name="address" placeholder="e.g. Shop 4, Market Road" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn primary">Save Customer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Quick Add Product Modal -->
+<div class="modal-overlay" id="productModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <h3>Add New Product / Rate</h3>
+        <p>Set up print service rates and cost pricing.</p>
+      </div>
+      <button type="button" class="modal-close" data-close-modal>&times;</button>
+    </div>
+
+    <form id="quickProductForm" method="post" action="{% url 'product_create' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="prodNameInput">Product / Item Name *</label>
+            <input type="text" id="prodNameInput" name="name" placeholder="e.g. Vinyl Banner / Letterhead" required />
+          </div>
+          <div class="field">
+            <label for="prodPriceInput">Selling Price (₹/unit) *</label>
+            <input type="number" id="prodPriceInput" name="price" min="0" placeholder="150" required />
+          </div>
+          <div class="field">
+            <label for="prodCostInput">Cost / Base Rate (₹/unit)</label>
+            <input type="number" id="prodCostInput" name="cost_price" min="0" value="0" placeholder="80" />
+          </div>
+          <div class="field full">
+            <label for="prodStockInput">Stock / Quantity in hand</label>
+            <input type="number" id="prodStockInput" name="stocks" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn primary">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 4. Quick Change Status Modal -->
+<div class="modal-overlay" id="statusModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal-card modal-sm">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <h3>Update Job Stage</h3>
+        <p id="statusModalSubtitle">Move order to next production step</p>
+      </div>
+      <button type="button" class="modal-close" data-close-modal>&times;</button>
+    </div>
+
+    <form id="quickStatusForm">
+      {% csrf_token %}
+      <input type="hidden" id="statusModalOrderId" />
+      <div class="modal-body">
+        <div class="field full">
+          <label for="targetStatusSelect">Select New Status</label>
+          <select id="targetStatusSelect" class="status-select-large">
+            {% for code, label in status_choices %}
+              <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn primary">Update Stage</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock content %}

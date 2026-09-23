@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Business Profile & Settings - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>Business Profile & Settings</h2>
+      <p>Configure your press brand name, billing contact information, and account details.</p>
+    </div>
+  </header>
+
+  <div class="panel" style="max-width: 700px; margin: 0 auto; width: 100%;">
+    <div class="panel-head">
+      <h3>Business Identity</h3>
+      <span class="pill delivered">Active Profile</span>
+    </div>
+
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field full">
+          <label for="{{ form.name.id_for_label }}">Business / Shop Display Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<small class="text-danger">{{ form.name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.email.id_for_label }}">Official Business Email *</label>
+          {{ form.email }}
+          {% if form.email.errors %}<small class="text-danger">{{ form.email.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="field full">
+          <label for="{{ form.mobile_no.id_for_label }}">Customer Contact / Mobile Number</label>
+          {{ form.mobile_no }}
+          {% if form.mobile_no.errors %}<small class="text-danger">{{ form.mobile_no.errors.0 }}</small>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line);">
+        <button type="submit" class="btn primary">Save Profile Changes</button>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

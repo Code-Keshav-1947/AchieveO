@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Orders - AchieveO{% endblock %}
+
+{% block content %}
+<main class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>All Orders Directory</h2>
+      <p>Search, filter, export and manage complete print order records.</p>
+    </div>
+    <div class="actions">
+      <a href="{% url 'order_export_csv' %}" class="btn ghost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        <span>Export CSV</span>
+      </a>
+      <a href="{% url 'order_create' %}" class="btn primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+        <span>Create Order</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="panel">
+    <form method="get" class="filters">
+      <div class="field">
+        <label for="q">Search</label>
+        <input type="search" id="q" name="q" value="{{ q }}" placeholder="Search customer, job name, product..." />
+      </div>
+
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="">All Statuses</option>
+          {% for code, label in status_choices %}
+            <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="payment">Payment</label>
+        <select id="payment" name="payment">
+          <option value="">All Payments</option>
+          <option value="paid" {% if pay_filter == 'paid' %}selected{% endif %}>Paid</option>
+          <option value="partial" {% if pay_filter == 'partial' %}selected{% endif %}>Partial</option>
+          <option value="due" {% if pay_filter == 'due' %}selected{% endif %}>Due</option>
+        </select>
+      </div>
+
+      <div class="field filter-action-field">
+        <label>&nbsp;</label>
+        <div style="display: flex; gap: 8px;">
+          <button type="submit" class="btn primary btn-sm">Filter</button>
+          {% if q or status_filter or pay_filter %}
+            <a href="{% url 'order_list' %}" class="btn ghost btn-sm">Clear</a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Job Name</th>
+            <th>Product & Qty</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Total Amount</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>
+              <span class="order-id-badge">#{{ order.id }}</span>
+              <div class="table-date">{{ order.date_get|date:"d M Y" }}</div>
+            </td>
+            <td>
+              <div class="customer-cell">
+                <strong>{{ order.customer.name }}</strong>
+                {% if order.customer.mobile_no %}
+                  <span class="subtext">{{ order.customer.mobile_no }}</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="job">
+                <strong>{{ order.name }}</strong>
+                {% if order.due_date %}
+                  <span class="due-text">Due: {{ order.due_date|date:"d M Y" }}</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="product-cell">
+                <span>{{ order.product.name }}</span>
+                <span class="badge-qty">&times; {{ order.quantity }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="pill pill-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+            </td>
+            <td>
+              <span class="pill pill-{{ order.payment_status }}">{{ order.payment_status|title }}</span>
+              <div class="payment-sub">
+                {% if order.balance > 0 %}
+                  <small class="text-danger">Bal: ₹{{ order.balance }}</small>
+                {% else %}
+                  <small class="text-success">Paid</small>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <strong>₹{{ order.total_amount }}</strong>
+              {% if order.advance > 0 %}
+                <br><small class="subtext">Adv: ₹{{ order.advance }}</small>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <a href="{% url 'order_invoice' order.id %}" target="_blank" class="icon-btn" title="Invoice / Job Card">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+                </a>
+                <a href="{% url 'order_edit' order.id %}" class="icon-btn" title="Edit">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                <a href="{% url 'order_delete' order.id %}" class="icon-btn danger" title="Delete">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="empty-state">
+              <h4>No orders match your criteria</h4>
+              <p>Try clearing filters or creating a new order.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+{% endblock %}
