@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
 
 def root_redirect(request):
     if request.user.is_authenticated:
@@ -33,5 +34,7 @@ urlpatterns = [
     path("customers/", include("customers.urls")),
     path("products/", include("products.urls")),
     path("profile/", include("owners.urls")),
+    path('manifest.json', TemplateView.as_view(template_name="manifest.json", content_type='application/json'), name='manifest.json'),
+    path('sw.js', TemplateView.as_view(template_name="sw.js", content_type='application/javascript'), name='sw.js'),
 ]
 
