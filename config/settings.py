@@ -28,25 +28,39 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("true", "1", "yes")
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("true", "1", "yes")
 
 allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS")
 if allowed_hosts_env:
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
 else:
-    ALLOWED_HOSTS = ["*"] if DEBUG else ["localhost", "127.0.0.1"]
+    # Default to allowing local + Render hostnames
+    ALLOWED_HOSTS = ["*"] if DEBUG else ["localhost", "127.0.0.1", "achieveo.onrender.com", ".onrender.com"]
 
-# Railway provides RAILWAY_PUBLIC_DOMAIN
+# Render provides RENDER_EXTERNAL_HOSTNAME automatically
+RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+
+# Railway support
 RAILWAY_DOMAIN = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
-if RAILWAY_DOMAIN:
+if RAILWAY_DOMAIN and RAILWAY_DOMAIN not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RAILWAY_DOMAIN)
 
+# Trust Render proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS_ENV = os.environ.get("CSRF_TRUSTED_ORIGINS")
 if CSRF_TRUSTED_ORIGINS_ENV:
     CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS_ENV.split(",") if o.strip()]
-elif RAILWAY_DOMAIN:
-    CSRF_TRUSTED_ORIGINS = [f"https://{RAILWAY_DOMAIN}"]
-
+else:
+    CSRF_TRUSTED_ORIGINS = ["https://achieveo.onrender.com"]
+    if RENDER_HOST:
+        CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
+    if RAILWAY_DOMAIN:
+        CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_DOMAIN}")
 
 # Application definition
 

@@ -3,6 +3,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4A90E2">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign In - AchieveO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,6 +61,58 @@
     </style>
   </head>
   <body>
+    <div id="pwa-install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #ffffff; border-radius: 12px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10000; font-family: sans-serif; border: 1px solid #e2e8f0;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <h4 style="margin: 0; font-size: 16px; color: #1a202c;">Install Achieveo</h4>
+      <p style="margin: 4px 0 0 0; font-size: 13px; color: #4a5568;">Get fast access directly from your home screen.</p>
+    </div>
+  </div>
+  <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end;">
+    <button id="pwa-dismiss-btn" style="background: transparent; border: 1px solid #cbd5e0; padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #4a5568;">Not now</button>
+    <button id="pwa-install-btn" style="background: #4A90E2; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">Install</button>
+  </div>
+</div>
+
+<script>
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW Registered:', reg.scope))
+        .catch(err => console.error('SW Error:', err));
+    });
+  }
+
+  // Custom Banner Logic
+  let deferredPrompt;
+  const installBanner = document.getElementById('pwa-install-banner');
+  const installBtn = document.getElementById('pwa-install-btn');
+  const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBanner) installBanner.style.display = 'block';
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      installBanner.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('User choice:', outcome);
+      deferredPrompt = null;
+    });
+  }
+
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => {
+      if (installBanner) installBanner.style.display = 'none';
+    });
+  }
+</script>
     <div class="login-page">
       <div class="login-container">
         <div class="login-brand">
